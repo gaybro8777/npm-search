@@ -2,6 +2,7 @@ import algoliaIndex from './algoliaIndex.js';
 import formatPkg from './formatPkg.js';
 import log from './log.js';
 import npm from './npm.js';
+import ms from 'ms';
 
 export default function saveChangesAndState(seq, changes) {
   const rawPkgs = changes
@@ -15,7 +16,13 @@ export default function saveChangesAndState(seq, changes) {
   }
 
   return addMetaData(rawPkgs)
-    .then(pkgs => algoliaIndex.saveObjects(pkgs))
+    .then(pkgs => {
+      const start = Date.now();
+      return algoliaIndex.saveObjects(pkgs).then(res => {
+        log.info('Saving objects on Algolia took %s', ms(Date.now() - start));
+        return res;
+      });
+    })
     .then(({taskID}) => algoliaIndex.waitTask(taskID))
     .then(() => log.info('Found and saved %d packages', rawPkgs.length));
 }

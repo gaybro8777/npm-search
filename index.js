@@ -4,6 +4,7 @@ import c from './config.js';
 import PouchDB from 'pouchdb';
 import npm from './npm.js';
 import log from './log.js';
+import ms from 'ms';
 
 log.info('🗿 npm ↔️ Algolia replication starts 🛰');
 
@@ -26,9 +27,12 @@ stateManager
   .catch(error);
 
 function info(state, nbChanges) {
+  const start = Date.now();
+
   return npm
     .info()
     .then(npmInfo => {
+      log.info('Getting npm registry info took %s', ms(Date.now() - start));
       log.info(
         'Replicated %d/%d changes (%d%), current rate: %d changes/s',
         state.seq,
@@ -42,12 +46,17 @@ function info(state, nbChanges) {
 }
 
 function replicate({seq}) {
+  const start = Date.now();
   log.info('Asking for %d changes since sequence %d', c.concurrency, seq);
 
   return db
     .changes({
       ...defaultOptions,
       since: seq,
+    })
+    .then(res => {
+      log.info('Getting changes from npm registry took %s', ms(Date.now() - start));
+      return res;
     })
     .then(res =>
       saveChanges(seq, res.results)

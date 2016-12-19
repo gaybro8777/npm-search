@@ -1,6 +1,8 @@
 import got from 'got';
 import c from './config.js';
 import {chunk} from 'lodash';
+import ms from 'ms';
+import log from './log.js';
 
 export default {
   info() {
@@ -10,6 +12,8 @@ export default {
       );
   },
   getDownloads(pkgs) {
+    const start = Date.now();
+
     // npm has a weird API to get downloads via GET params, so we split pkgs into chunks
     // and do multiple requests to avoid weird cases when concurrency is high
     const encodedPackageNames = pkgs.map(pkg => encodeURIComponent(pkg.name));
@@ -26,6 +30,8 @@ export default {
           .map(pkgsNames => got(`${c.npmDownloadsEndpoint}/point/last-month/${pkgsNames}`, {json: true})),
       ])
       .then(([{body: {downloads: totalNpmDownloadsPerDay}}, ...downloadsPerPkgNameChunks]) => {
+        log.info('Getting downloads from npm api took %s', ms(Date.now() - start));
+
         const totalNpmDownloads = totalNpmDownloadsPerDay
           .reduce((total, {downloads: dayDownloads}) => total + dayDownloads, 0);
 
