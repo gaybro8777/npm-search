@@ -46,7 +46,7 @@
   "devDependencies": {
     "babel-eslint": "^7.2.3",
     "doctoc": "^1.2.0",
-    "eslint": "^3.19.0",
+    "eslint": "^4.18.2",
     "eslint-config-algolia": "^8.0.0",
     "eslint-config-prettier": "^2.1.0",
     "eslint-import-resolver-webpack": "^0.8.1",
